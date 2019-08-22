@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/lixuefei/CLionProjects/FunCC-/shared_ptr/SharedPointer.h
+
+/Users/lixuefei/CLionProjects/FunCC-/shared_ptr/main.cpp
+iostream
+-
+memory
+-
+string
+-
+vector
+-
+SharedPointer.h
+/Users/lixuefei/CLionProjects/FunCC-/shared_ptr/SharedPointer.h
+

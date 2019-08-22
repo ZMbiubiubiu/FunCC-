@@ -117,3 +117,195 @@ protected:
 #endif //SHARED_PTR_SHARED_POINTER_H
 
 ```
+
+### 3 实现LRU缓存  
+O(1) 时间内实现 `get/put` 操作;  
+`get/put` 的节点都需要放到头部；
+
+```asm
+LRUCache cache = new LRUCache( 2 /* 缓存容量 */ );
+
+cache.put(1, 1);
+cache.put(2, 2);
+cache.get(1);       // 返回  1
+cache.put(3, 3);    // 该操作会使得密钥 2 作废
+cache.get(2);       // 返回 -1 (未找到)
+cache.put(4, 4);    // 该操作会使得密钥 1 作废
+cache.get(1);       // 返回 -1 (未找到)
+cache.get(3);       // 返回  3
+cache.get(4);       // 返回  4
+```
+
+```python
+# 字典+双向链表
+# 字典  key:node<key, value>
+# 双向链表记录顺序，以及在必要时刻剔除节点，移动节点到最前面
+# 为了避免每次替换头结点以及删除最后一个节点的判断临界问题：我们添加两个哨兵节点
+#  head  <-> tail
+class DLinkedNode(): 
+    def __init__(self):
+        self.key = 0
+        self.value = 0
+        self.prev = None
+        self.next = None
+            
+class LRUCache():
+    def _add_node(self, node):
+        """
+        put 新加节点时
+        Always add the new node right after head.
+        """
+        node.prev = self.head
+        node.next = self.head.next
+
+        self.head.next.prev = node
+        self.head.next = node
+
+    def _remove_node(self, node):
+        """
+        节点数超过容量时
+        Remove an existing node from the linked list.
+        """
+        prev = node.prev
+        next = node.next
+
+        prev.next = next
+        next.prev = prev
+
+    def _move_to_head(self, node):
+        """
+        get访问以及put更新节点时
+        Move certain node in between to the head.
+        """
+        self._remove_node(node)
+        self._add_node(node)
+
+    def _pop_tail(self):
+        """
+        Pop the current tail.
+        """
+        res = self.tail.prev
+        self._remove_node(res)
+        return res
+
+    def __init__(self, capacity):
+        """
+        :type capacity: int
+        """
+        self.cache = {}
+        self.size = 0
+        self.capacity = capacity
+        self.head, self.tail = DLinkedNode(), DLinkedNode()
+
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        
+
+    def get(self, key):
+        """
+        :type key: int
+        :rtype: int
+        """
+        node = self.cache.get(key, None)
+        if not node:
+            return -1
+
+        # move the accessed node to the head;
+        self._move_to_head(node)
+
+        return node.value
+
+    def put(self, key, value):
+        """
+        :type key: int
+        :type value: int
+        :rtype: void
+        """
+        node = self.cache.get(key)
+
+        if not node: 
+            newNode = DLinkedNode()
+            newNode.key = key
+            newNode.value = value
+
+            self.cache[key] = newNode
+            self._add_node(newNode)
+
+            self.size += 1
+
+            if self.size > self.capacity:
+                # pop the tail
+                tail = self._pop_tail()
+                del self.cache[tail.key]
+                self.size -= 1
+        else:
+            # update the value.
+            node.value = value
+            self._move_to_head(node)
+```
+```C++
+//
+// Created by 张猛 on 2019-08-22.
+//
+
+#ifndef FUNCC_LRUCACHE_H
+#define FUNCC_LRUCACHE_H
+
+class LRUCache {
+private:
+    unordered_map<int, list < pair < int, int>>::iterator> hashtable; // key->双向链表的 !迭代器!（迭代器中存储的为key, value）
+    list <pair<int, int>> ls; // 双向链表
+    int cap;  // 容量
+    int curr;
+};
+
+};
+public:
+
+LRUCache(int capacity) : hashtable(), ls(), cap(capacity), curr(0) {}
+
+int get(int key) {
+    if (hashtable.find(key) == hashtable.end()) return -1;
+    auto itr = hashtable[key];  // 能够找到
+    if (itr == ls.begin())   // 双向链表的第一个节点便是目标
+        return itr->second;  // 找到返回值. itr->first：键值对的key；itr->second：键值对的value
+    else {
+        ls.push_front(pair<int, int>(itr->first, itr->second));
+        auto new_itr = ls.begin();
+        hashtable[key] = new_itr;
+        ls.erase(itr);
+        return ls.front().second;
+    }
+    return 1;
+}
+
+void put(int key, int value) {
+    if (hashtable.find(key) != hashtable.end()) {
+        ls.erase(hashtable[key]);
+        ls.push_front(pair<int, int>(key, value));
+        auto new_itr = ls.begin();
+        hashtable[key] = new_itr;
+        return;
+    }
+    if (curr == cap) {
+        hashtable.erase(ls.back().first);
+        ls.pop_back();
+        curr--;
+    }
+    ls.push_front(pair<int, int>(key, value));
+    auto new_itr = ls.begin();
+    hashtable[key] = new_itr;
+    curr++;
+}
+
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
+
+#endif //FUNCC_LRUCACHE_H
+
+```
