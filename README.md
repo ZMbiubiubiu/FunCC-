@@ -1,6 +1,13 @@
 `C/C++`Program`  `Computer fundamentals`
 
-用简短程序记录C/C++学习之旅.  
+使用 C/C++ 实现各种设计.  
+[1、洗牌](#1-洗牌)  
+[2、智能指针](2-实现C++智能指针)  
+[3、LRU缓存](#3-实现LRU缓存)  
+[4、判断计算机大小端](#4-编写函数确定计算机的字节序：大端or小端)  
+[5](#)  
+[6](#)  
+
 
 ### 1 洗牌  
 
@@ -122,7 +129,7 @@ protected:
 O(1) 时间内实现 `get/put` 操作;  
 `get/put` 的节点都需要放到头部；
 
-```asm
+```C++
 LRUCache cache = new LRUCache( 2 /* 缓存容量 */ );
 
 cache.put(1, 1);
@@ -307,5 +314,54 @@ void put(int key, int value) {
  */
 
 #endif //FUNCC_LRUCACHE_H
+
+```
+
+### 4 编写函数确定计算机的字节序：大端or小端  
+1111 1111  0000 0000
+* 大端：高位字节存储在低位地址 -> 1111 1111 0000 0000
+* 小端：高位字节存储在高位字节 -> 0000 0000 1111 1111
+```C++
+//
+// Created by 张猛 on 2019-08-22.
+//
+
+#include <iostream>
+
+using namespace std;
+
+// union 下的数据共享同一段内存
+union {
+    short s;   //short在16位、32位、64位下都是2字节
+    char c[2];
+} un;
+
+//返回1表示大端，0表示小端，-1表示unknown
+int bigEndian() {
+
+    un.s = 0x0102;
+    if (un.c[0] == 1 && un.c[1] == 2) return 1;
+    else if (un.c[0] == 2 && un.c[1] == 1) return 0;
+    else return -1;
+}
+
+int main() {
+    cout << sizeof(un) << endl;
+    int result = bigEndian();
+    switch (result) {
+        case 1: {
+            cout << "大端" << endl;
+            break;
+        }
+        case 0: {
+            cout << "小端" << endl;
+            break;
+        }
+        case -1:
+            cout << "未知" << endl;
+    }
+    return 0;
+}
+
 
 ```
